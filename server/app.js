@@ -1,8 +1,8 @@
-# Express application configuration — API only.
-# This file owns: middleware, route mounting.
-# It does NOT serve static files — Nginx owns that (see nginx/nginx.conf).
-# It does NOT start the server — server.js owns that.
-# It does NOT connect to the database — config/db.js owns that.
+// Express application configuration — API only.
+// This file owns: middleware, route mounting.
+// It does NOT serve static files — Nginx owns that (see nginx/nginx.conf).
+// It does NOT start the server — server.js owns that.
+// It does NOT connect to the database — config/db.js owns that.
 require('dotenv').config({ path: __dirname + '/../../.env' });
 
 const express    = require('express');
