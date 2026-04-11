@@ -1,4 +1,4 @@
-# Documentation Index
+# From 2-Tier to 3-Tier Architecture: A Complete Migration Guide
 
 This folder contains the complete technical documentation for the migration of this project from a 2-tier architecture to a proper 3-tier architecture.
 
