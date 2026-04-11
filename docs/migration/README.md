@@ -10,6 +10,7 @@ This folder contains the complete technical documentation for the migration of t
 | [02-original-problems.md](./02-original-problems.md) | Exact problems found in the original codebase, file by file |
 | [03-migration-changes.md](./03-migration-changes.md) | Every file changed, deleted, or created — with before/after code |
 | [04-how-to-read-any-codebase.md](./04-how-to-read-any-codebase.md) | A practical guide: given any Node.js project, how to determine its tier architecture in under 5 minutes |
+| [full-guide](./full-guide.md) | A consolidated single-file version |
 
 ## Why This Documentation Exists
 
