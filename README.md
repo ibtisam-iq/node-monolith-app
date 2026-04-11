@@ -64,7 +64,7 @@ Three-tier architecture: Presentation (React SPA) → Business Logic (Express + 
 
 The inherited codebase was functional but architecturally inconsistent — originally closer to a 2-tier structure where the backend mixed route definitions, SQL queries, and static file serving in a single file with no separation of concerns. Before doing any DevOps work, I audited the code, refactored it into a proper 3-tier MVC architecture, and modernized all dependencies.
 
-> **Note:** Refactoring application code is not my primary role as a DevOps Engineer. However, receiving a codebase that is poorly structured or built on outdated dependencies is a real-world scenario. I used **AI-assisted analysis (Perplexity Pro)** to audit the dependency tree, identify outdated packages, and apply the correct architectural fixes — which is itself a practical DevOps skill: knowing what to fix, and knowing when to use the right tool to fix it efficiently.
+> **Note:** I used **AI-assisted analysis (Perplexity Pro)** to audit the dependency tree, identify outdated packages, and apply the correct architectural fixes.
 
 **Changes made to `server/package.json`:**
 
@@ -89,7 +89,7 @@ models/         ← SQL queries
 config/db.js    ← connection pool (not a one-use connection)
 ```
 
-> **Further reading:** All architectural decisions, original problems, and migration details are documented in [`docs/`](./docs/).
+> **Further reading:** All architectural decisions, original problems, and migration details are documented in [`docs/migration`](./docs/migration).
 
 ---
 
