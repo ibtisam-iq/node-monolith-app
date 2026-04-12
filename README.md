@@ -20,7 +20,7 @@ node-monolith-app/
 │   │   ├── App.js
 │   │   ├── api/users.js            # Axios HTTP calls to backend API
 │   │   └── components/             # UsersList, UserItem
-│   ├── public/                     # Static assets served by Express
+│   ├── public/                     # Static assets served by Nignx
 │   ├── package.json                # React 18, Axios, Webpack, Babel
 │   └── webpack.config.js
 ├── server/                         # Node.js + Express backend
@@ -114,7 +114,7 @@ MYSQL_ROOT_PASSWORD=your_root_password
 MYSQL_DATABASE=test_db
 MYSQL_USER=your_username
 MYSQL_PASSWORD=your_password
-DB_HOST=db
+DB_HOST=localhost
 PORT=5000
 ```
 
@@ -167,19 +167,29 @@ mysql -u your_username -pyour_password -e "USE test_db; SHOW TABLES;"
 **Install dependencies and run the server:**
 
 ```bash
-# Install server dependencies
-cd server && npm install
+# Install server dependencies and server itself
+cd server && npm install && node server.js
 
 # Install client dependencies and build the React bundle
 cd ../client && npm install && npm run build
+```
 
-# start the server
-node server/server.js
+```bash
+sudo apt install -y nginx
+cp nginx/default.conf /etc/nginx/conf.d/default.conf
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo chmod o+x ~
+sudo chmod -R o+r ~/node-monolith-app/client/public
+sudo nginx -t && sudo systemctl restart nginx
 ```
 
 > **Note:** The React app must be built (`npm run build`) before starting the server. Express serves the compiled static files from `client/public/`. Running the server without building first will result in a blank frontend.
 
-App runs at: `http://localhost:5000`
+```bash
+curl http://localhost:5000/api/test
+curl http://localhost:5000/api/users
+curl http://localhost
+```
 
 ---
 

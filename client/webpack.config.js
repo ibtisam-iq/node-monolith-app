@@ -13,8 +13,8 @@ module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,  // clears dist/ before each build
+    path: path.resolve(__dirname, 'public'),
+    clean: true,  // clears public/ before each build
   },
   plugins: [
     new HtmlWebpackPlugin({
