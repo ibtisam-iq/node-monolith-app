@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 // Note: file-loader and url-loader are deprecated since Webpack 5.
 // Webpack 5 handles images and assets natively via Asset Modules.
@@ -20,12 +21,17 @@ module.exports = {
       template: './src/index.html',  // use our template
       filename: 'index.html',        // output as dist/index.html
     }),
+    new MiniCssExtractPlugin({
+      filename: 'style.css',         // output as dist/style.css
+    }),
   ],
   module: {
     rules: [
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        // MiniCssExtractPlugin.loader extracts CSS into a separate file
+        // instead of style-loader which injects CSS into the DOM at runtime
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         // Replaces url-loader with limit option.
