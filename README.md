@@ -72,7 +72,9 @@ Three-tier architecture: Presentation (Webpack SPA served by Nginx) → Business
 
 ### Step 0 — Codebase Modernization
 
-The inherited codebase was functional but architecturally inconsistent — originally closer to a 2-tier structure where the backend mixed route definitions, SQL queries, and static file serving in a single file with no separation of concerns. The frontend build pipeline also had a structural problem: `index.html` and `style.css` were manually placed inside `public/` and committed to Git, while webpack only generated `bundle.js`. The build was not the source of truth.
+The inherited codebase was functional but architecturally inconsistent — originally closer to a 2-tier structure where the backend mixed route definitions, SQL queries, and static file serving in a single file with no separation of concerns.
+
+The frontend build pipeline also had a structural problem: `index.html` and `style.css` were manually placed inside `public/` and committed to Git, while webpack only generated `bundle.js`. The build was not the source of truth.
 
 Before doing any DevSecOps work, I audited the code, refactored the backend into a proper 3-tier MVC architecture, modernized all dependencies, and fixed the frontend build pipeline to generate all output automatically.
 
