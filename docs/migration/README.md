@@ -1,21 +1,18 @@
-# From 2-Tier to 3-Tier Architecture: A Complete Migration Guide
+# Migration Documentation
 
-This folder contains the complete technical documentation for the migration of this project from a 2-tier architecture to a proper 3-tier architecture.
+This folder contains detailed documentation for every architectural change made to this codebase — from the original 2-tier monolith to a properly structured 3-tier application with a modern frontend build pipeline.
 
 ## Documents
 
 | File | What It Covers |
 |---|---|
-| [01-architecture-theory.md](./01-architecture-theory.md) | What 2-tier and 3-tier actually mean, with code patterns to recognize each |
-| [02-original-problems.md](./02-original-problems.md) | Exact problems found in the original codebase, file by file |
-| [03-migration-changes.md](./03-migration-changes.md) | Every file changed, deleted, or created — with before/after code |
-| [04-how-to-read-any-codebase.md](./04-how-to-read-any-codebase.md) | A practical guide: given any Node.js project, how to determine its tier architecture in under 5 minutes |
-| [full-guide](./full-guide.md) | A consolidated single-file version |
+| [`01-architecture-theory.md`](./01-architecture-theory.md) | What 2-tier and 3-tier architectures mean, and why the distinction matters |
+| [`02-original-problems.md`](./02-original-problems.md) | Audit of the original codebase — every problem found and why it was a problem |
+| [`03-migration-changes.md`](./03-migration-changes.md) | Every backend change made during the 2-tier → 3-tier migration, with before/after comparisons |
+| [`04-how-to-read-any-codebase.md`](./04-how-to-read-any-codebase.md) | A general methodology for auditing and understanding an unfamiliar codebase |
+| [`05-frontend-build-modernization.md`](./05-frontend-build-modernization.md) | Frontend build pipeline refactor — why `public/` files were hand-placed, what was wrong with that, and how webpack now generates everything in `dist/` |
+| [`full-guide.md`](./full-guide.md) | Combined reference — all migration content in a single document |
 
-## Why This Documentation Exists
+## Reading Order
 
-This project started as a Node.js + React + MySQL application that was **named** `2TierUserApp` but was actually more complex than that — yet not a clean 3-tier system either. It existed in an inconsistent in-between state.
-
-The goal of this migration was not just to fix the code, but to understand **why** the original code was architecturally incorrect, **what specific lines and patterns** make a system 2-tier vs 3-tier, and **how to recognize** these patterns in any future codebase.
-
-This documentation is written for a **DevOps engineer**, not a developer. It focuses on reading and understanding code structure — not writing it.
+If you are new to this project, read in order: `01` → `02` → `03` → `05`. Documents `04` and `full-guide.md` are supplementary references.
