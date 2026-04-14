@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Node.js + React-based monolithic user management web application serving as the **source codebase** for my two downstream DevOps projects:
+This is a Node.js-based monolithic user management web application serving as the **source codebase** for my two downstream DevOps projects:
 
 - **[DevSecOps Pipelines](https://github.com/ibtisam-iq/devsecops-pipelines)** — CI/CD pipelines that build, scan, and package this application into a secure, deployable artifact using Jenkins, GitHub Actions, Docker, SonarQube, and Trivy.
 - **[Platform Engineering Systems](https://github.com/ibtisam-iq/platform-engineering-systems)** — Deployment workflows that run this artifact across Docker Compose, AWS EC2, EKS (Kubernetes), Terraform, and GitOps-based delivery.
@@ -38,14 +38,15 @@ node-monolith-app/
 │   └── package.json                # Express, MySQL2, dotenv, cors
 ├── database/
 │   └── init.sql                    # Schema bootstrap
-├── nginx/                          # Nginx reverse proxy config
+├── nginx/
+│   └── default.conf                # Nginx reverse proxy config
 ├── docs/                           # Architecture docs, migration notes
 ├── .env.example                    # Environment variable template
 ├── Dockerfile
 └── compose.yml
 ```
 
-Three-tier architecture: Presentation (Webpack SPA) → Business Logic (Express + MVC) → Data (MySQL).
+Three-tier architecture: Presentation (Webpack SPA served by Nginx) → Business Logic (Express + MVC) → Data (MySQL).
 
 ---
 
@@ -71,9 +72,7 @@ Three-tier architecture: Presentation (Webpack SPA) → Business Logic (Express 
 
 ### Step 0 — Codebase Modernization
 
-The inherited codebase was functional but architecturally inconsistent — originally closer to a 2-tier structure where the backend mixed route definitions, SQL queries, and static file serving in a single file with no separation of concerns.
-
-The frontend build pipeline also had a structural problem: `index.html` and `style.css` were manually placed inside `public/` and committed to Git, while webpack only generated `bundle.js`. The build was not the source of truth.
+The inherited codebase was functional but architecturally inconsistent — originally closer to a 2-tier structure where the backend mixed route definitions, SQL queries, and static file serving in a single file with no separation of concerns. The frontend build pipeline also had a structural problem: `index.html` and `style.css` were manually placed inside `public/` and committed to Git, while webpack only generated `bundle.js`. The build was not the source of truth.
 
 Before doing any DevSecOps work, I audited the code, refactored the backend into a proper 3-tier MVC architecture, modernized all dependencies, and fixed the frontend build pipeline to generate all output automatically.
 
@@ -144,16 +143,13 @@ PORT=5000
 
 ### Step 2 — Local Build & Validation
 
-Before building any pipeline, I validated the full application lifecycle locally.
+Before building any pipeline, I validated the full application lifecycle locally. This step involves four components: MySQL, the Express backend, the webpack build, and Nginx.
 
-**Install and configure MySQL:**
+#### 1. Install and Configure MySQL
 
 ```bash
 sudo apt update && sudo apt install -y mysql-server
-sudo systemctl start mysql
-sudo systemctl enable mysql
-
-# Secure and create DB user
+sudo systemctl start mysql && sudo systemctl enable mysql
 sudo mysql -u root -p
 ```
 
@@ -165,55 +161,76 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-**Run the init.sql file to create the users table:**
-
 ```bash
+# Bootstrap the schema
 mysql -u your_username -pyour_password test_db < database/init.sql
-```
 
-**Verify MySQL is running and the database exists:**
-
-```bash
-# Check MySQL is running
-sudo systemctl status mysql
-
-# Confirm the database exists
-mysql -u your_username -pyour_password -e "SHOW DATABASES;" | grep test_db
-
-# Confirms the table exists
+# Verify
 mysql -u your_username -pyour_password -e "USE test_db; SHOW TABLES;"
 ```
 
-**Install dependencies and run the server:**
+#### 2. Install Dependencies and Start the Backend
 
 ```bash
-# Install server dependencies and start the backend
-cd server && npm install && node server.js
-
-# Install client dependencies and build the frontend bundle
-cd ../client && npm install && npm run build
+cd server && npm install
+node server.js
+# Expected output:
+# Server running at http://localhost:5000
+# Database pool connected successfully.
 ```
 
-**Install and configure Nginx:**
+#### 3. Build the Frontend
+
+```bash
+cd ../client && npm install
+npm run build
+# Expected: client/dist/ is created with index.html, bundle.js, style.css
+```
+
+> The frontend must be built **before** starting Nginx. Nginx serves the compiled static files from `client/dist/`. If `dist/` does not exist, Nginx will return 404 for all page requests.
+
+#### 4. Install and Configure Nginx
+
+Nginx acts as the reverse proxy that unifies both tiers under a single port (80). It serves static files from `client/dist/` and proxies all `/api/` requests to the Express server on port 5000.
 
 ```bash
 sudo apt install -y nginx
-cp nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Deploy the project's Nginx config
+sudo cp nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Remove the default Nginx site (it also listens on port 80 and takes priority)
 sudo rm -f /etc/nginx/sites-enabled/default
+
+# Grant Nginx (www-data) access to the home directory and dist folder
 sudo chmod o+x ~
-sudo chmod -R o+r ~/app/node-monolith-app/client/dist
+sudo chmod -R o+r ~/node-monolith-app/client/dist
+
+# Validate config syntax and restart
 sudo nginx -t && sudo systemctl restart nginx
 ```
 
-> **Note:** The frontend must be built (`npm run build`) before starting Nginx. Nginx serves the compiled static files from `client/dist/`. Running without building first will result in a blank or broken frontend.
+> **Why `chmod o+x ~`?** Nginx runs as `www-data`. To serve files from `/home/ibtisam/node-monolith-app/client/dist/`, it must be able to traverse each directory in that path. The home directory is typically `700` (owner-only), which blocks `www-data` from entering it. `chmod o+x ~` adds traverse permission for others without exposing home directory contents.
 
-**Verify everything is running:**
+> **Why remove `sites-enabled/default`?** Nginx on Ubuntu ships with a default site that also binds to port 80. It silently takes priority over configs in `conf.d/`. Without removing it, your custom config is loaded but never used.
+
+#### 5. Verify End to End
 
 ```bash
-curl http://localhost:5000/api/test
+# Backend API (direct, bypasses Nginx)
 curl http://localhost:5000/api/users
+
+# Backend API (through Nginx proxy)
+curl http://localhost/api/users
+
+# Frontend (served by Nginx)
 curl http://localhost
+# Expected: full HTML of index.html
 ```
+
+Open `http://localhost` in the browser. The full application loads. All CRUD operations work — the frontend calls `/api/users` which Nginx proxies transparently to Express.
+
+> **Further reading:** The complete story of every approach tried to serve the frontend — including two failed attempts before Nginx — is documented in [`docs/migration/06-frontend-serving-journey.md`](./docs/migration/06-frontend-serving-journey.md).
 
 ---
 
