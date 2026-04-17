@@ -2,12 +2,14 @@
 
 ## Overview
 
-This is a Node.js-based monolithic user management web application serving as the **source codebase** for my two downstream DevOps projects:
+This is a Node.js-based monolithic user management web application serving as the **source codebase** for two downstream DevOps projects:
 
 - **[DevSecOps Pipelines](https://github.com/ibtisam-iq/devsecops-pipelines)** — CI/CD pipelines that build, scan, and package this application into a secure, deployable artifact using Jenkins, GitHub Actions, Docker, SonarQube, and Trivy.
 - **[Platform Engineering Systems](https://github.com/ibtisam-iq/platform-engineering-systems)** — Deployment workflows that run this artifact across Docker Compose, AWS EC2, EKS (Kubernetes), Terraform, and GitOps-based delivery.
 
 > I did not build this application from scratch. As a DevOps Engineer, my focus is on everything that happens **around the code** — building, securing, packaging, and operating it in production-like environments.
+
+> The files I added to this repository are: `.gitignore` and `.env.example`. Everything else under `client/` and `server/` belongs to the original developer — with the exception of the architectural refactoring documented in Step 0 below.
 
 ---
 
@@ -40,8 +42,13 @@ node-monolith-3tier-app/
 │   └── init.sql                    # Schema bootstrap
 ├── nginx/
 │   └── default.conf                # Nginx reverse proxy config
-├── docs/                           # Architecture docs, migration notes
-└── .env.example                    # Environment variable template
+├── docs/
+│   ├── codebase-modernization.md   # Step 0 — full audit, refactor, and migration notes
+│   ├── local-deployment-guide.md
+│   └── project-architecture-and-dockerization-guide.md
+├── assets/                         # Project images
+├── .env.example                    # Environment variable template
+└── .gitignore
 ```
 
 Three-tier architecture: Presentation (Webpack SPA served by Nginx) → Business Logic (Express + MVC) → Data (MySQL).
@@ -70,50 +77,9 @@ Three-tier architecture: Presentation (Webpack SPA served by Nginx) → Business
 
 ### Step 0 — Codebase Modernization
 
-The inherited codebase was functional but architecturally inconsistent — originally closer to a 2-tier structure where the backend mixed route definitions, SQL queries, and static file serving in a single file with no separation of concerns.
+Before doing any DevOps work, I audited and modernized the inherited codebase — refactoring the backend from a flat 2-tier structure into a proper MVC architecture, modernizing all dependencies, and fixing the frontend build pipeline so that `dist/` is 100% generated and never committed.
 
-The frontend build pipeline also had a structural problem: `index.html` and `style.css` were manually placed inside `public/` and committed to Git, while webpack only generated `bundle.js`. The build was not the source of truth.
-
-Before doing any DevSecOps work, I audited the code, refactored the backend into a proper 3-tier MVC architecture, modernized all dependencies, and fixed the frontend build pipeline to generate all output automatically.
-
-> **Note:** I used **AI-assisted analysis (Perplexity Pro)** to audit the dependency tree, identify outdated packages, and apply the correct architectural fixes.
-
-**Changes made to `server/package.json`:**
-
-| What | Before | After | Why |
-|---|---|---|---|
-| `express` | `^4.18.2` | `^4.21.2` | Latest 4.x with security patches |
-| `mysql2` | `^2.3.3` | `^3.11.3` | v3 rewrites the connection pool with better async support |
-| `body-parser` | Present (standalone) | Removed | Bundled inside `express` since v4.16 — redundant dependency |
-| `dotenv` | Missing | `^16.4.7` | Required for `.env` support; was not present in original |
-| `cors` | `^2.8.5` | `^2.8.5` | Retained — still the correct package |
-
-**Backend architecture refactor (2-tier → 3-tier):**
-
-The original `server.js` had all CRUD routes and raw SQL inline. I restructured into clean MVC:
-
-```
-server.js       ← entry point only (env + listen)
-app.js          ← Express config (middleware + route mounting)
-routes/         ← URL definitions
-controllers/    ← request/response logic
-models/         ← SQL queries
-config/db.js    ← connection pool (not a one-use connection)
-```
-
-**Frontend build pipeline modernization:**
-
-The original `webpack.config.js` only compiled `src/index.js` into `public/bundle.js`. Two files — `index.html` and `style.css` — were manually placed in `public/` and committed to Git. I fixed this by:
-
-- Adding `HtmlWebpackPlugin` → auto-generates `dist/index.html` from `src/index.html` template
-- Adding `MiniCssExtractPlugin` → extracts `dist/style.css` from `import './style.css'` in `index.js`
-- Changing output path from `public/` to `dist/`
-- Deleting `public/index.html` and `public/style.css` from Git
-- Adding `client/dist/` to `.gitignore`
-
-Now `npm run build` is the single source of truth — `dist/` is 100% generated and never committed.
-
-> **Further reading:** All architectural decisions, original problems, and migration details are documented in [`docs/migration`](./docs/migration).
+> I used **AI-assisted analysis (Perplexity Pro)** for this step. Full audit notes, dependency changes, and migration details: [`docs/codebase-modernization.md`](docs/codebase-modernization.md)
 
 ---
 
@@ -137,13 +103,13 @@ DB_HOST=localhost
 PORT=5000
 ```
 
-> **Note:** For local bare-metal runs, `DB_HOST=localhost` is correct — MySQL is running directly on the same machine. When running via Docker Compose, change `DB_HOST` to match the database service name defined in `compose.yml` (e.g., `db`). Docker resolves that service name as a hostname on the internal container network, so `localhost` will not work there.
+> **Note:** For local bare-metal runs, `DB_HOST=localhost` is correct — MySQL is running directly on the same machine. When running via Docker Compose, `DB_HOST` is overridden to `mysql` (the database service name defined in `compose.yml`) via the `environment:` block. Docker resolves that service name as a hostname on the internal container network, so `localhost` will not work there.
 
 ---
 
-### Step 2 — Local Build & Validation
+### Step 2 — Local Build & Bare-Metal Validation
 
-Before building any pipeline, I validated the full application lifecycle locally. This step involves four components: MySQL, the Express backend, the webpack build, and Nginx.
+Before writing any pipeline or Docker config, I validated the full application lifecycle locally — native MySQL, native Node.js, and Nginx. This confirmed the build was clean and the app connected to the database correctly before introducing any containerization layer.
 
 #### 1. Install and Configure MySQL
 
@@ -221,8 +187,6 @@ sudo nginx -t && sudo systemctl restart nginx
 
 #### 5. Verify End to End
 
-I ran the following commands to confirm all three layers were working:
-
 ```bash
 # Confirmed the backend API was up (direct, bypasses Nginx)
 curl http://localhost:5000/api/test
@@ -236,7 +200,7 @@ curl http://localhost
 
 I also opened `http://localhost` in the browser — the full application loaded, and all CRUD operations worked correctly.
 
-> **Further reading:** I went through several failed approaches before landing on this Nginx setup. The full journey — including what I tried, what broke, and why — is documented in [`docs/migration/06-frontend-serving-journey.md`](./docs/migration/06-frontend-serving-journey.md).
+> **Further reading:** Full journey including failed approaches and fixes: [`docs/local-deployment-guide.md`](docs/local-deployment-guide.md)
 
 ---
 
