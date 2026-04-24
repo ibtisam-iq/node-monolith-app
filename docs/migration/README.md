@@ -1,6 +1,6 @@
 # Migration Documentation
 
-This folder contains detailed documentation for every architectural change made to this codebase — from the original 2-tier monolith to a properly structured 3-tier application with a modern frontend build pipeline and Nginx-based serving.
+This folder contains detailed documentation for every architectural change made to this codebase — from the original 2-tier monolith to a properly structured 3-tier application with a modern frontend build pipeline, Nginx-based serving, and a production-grade DevSecOps CI pipeline.
 
 ## Documents
 
@@ -10,10 +10,11 @@ This folder contains detailed documentation for every architectural change made 
 | [`02-original-problems.md`](./02-original-problems.md) | Audit of the original codebase — every problem found and why it was a problem |
 | [`03-migration-changes.md`](./03-migration-changes.md) | Every backend change made during the 2-tier → 3-tier migration, with before/after comparisons |
 | [`04-how-to-read-any-codebase.md`](./04-how-to-read-any-codebase.md) | A general methodology for auditing and understanding an unfamiliar codebase |
-| [`05-frontend-build-modernization.md`](./05-frontend-build-modernization.md) | Frontend build pipeline refactor — why `public/` files were hand-placed, what was wrong with that, and how webpack now generates everything in `dist/` |
+| [`05-frontend-build-modernization.md`](./05-frontend-build-modernization.md) | Frontend build pipeline refactor — why `public/` files were hand-placed, what was wrong with that, and how Webpack now generates everything |
 | [`06-frontend-serving-journey.md`](./06-frontend-serving-journey.md) | Step-by-step journal of every attempt to serve the decoupled frontend — from Express static to Python HTTP server to Nginx reverse proxy — with every failure documented |
+| [`07-ci-pipeline-design-decisions.md`](./07-ci-pipeline-design-decisions.md) | Why one Jenkinsfile (not two) is correct for this monorepo — the full reasoning, industry standard, and 18-stage pipeline structure |
 | [`full-guide.md`](./full-guide.md) | Combined reference — all migration content in a single document |
 
 ## Reading Order
 
-If you are new to this project, read in order: `01` → `02` → `03` → `05` → `06`. Documents `04` and `full-guide.md` are supplementary references.
+If you are new to this project, read in order: `01` → `02` → `03` → `05` → `06` → `07`. Documents `04` and `full-guide.md` are supplementary references.
