@@ -335,24 +335,24 @@ jobs:
           retention-days: 14
 
       - name: SonarQube — static analysis
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.projectKey=node-monolith-3tier \
-            -Dsonar.projectName=node-monolith-3tier \
-            -Dsonar.projectVersion=$IMAGE_TAG \
-            -Dsonar.sources=client/src,server \
-            -Dsonar.tests=client/src,server \
-            "-Dsonar.test.inclusions=**/*.test.js,**/*.spec.js,**/__tests__/**" \
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-            -Dsonar.junit.reportPaths=jest-results.xml \
-            "-Dsonar.exclusions=**/node_modules/**,client/public/**,nginx/**,coverage/**,**/*.min.js,**/jest.config.js,**/eslint.config.mjs,**/webpack.config.js" \
-            -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.working.directory="${GITHUB_WORKSPACE}/.scannerwork" \
-            -Dsonar.host.url="${SONAR_HOST_URL}" \
+            -Dsonar.projectKey=node-monolith-3tier
+            -Dsonar.projectName=node-monolith-3tier
+            -Dsonar.projectVersion=$IMAGE_TAG
+            -Dsonar.sources=client/src,server
+            -Dsonar.tests=client/src,server
+            "-Dsonar.test.inclusions=**/*.test.js,**/*.spec.js,**/__tests__/**"
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.junit.reportPaths=jest-results.xml
+            "-Dsonar.exclusions=**/node_modules/**,client/public/**,nginx/**,coverage/**,**/*.min.js,**/jest.config.js,**/eslint.config.mjs,**/webpack.config.js"
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.working.directory="${GITHUB_WORKSPACE}/.scannerwork"
+            -Dsonar.host.url="${SONAR_HOST_URL}"
             -Dsonar.token="${SONAR_TOKEN}"
 
       - name: SonarQube — Quality Gate check
