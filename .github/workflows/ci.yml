@@ -164,8 +164,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: |
-            client/package-lock.json
-            server/package-lock.json
+            client/package.json
+            server/package.json
 
       - name: Versioning — compute shared image tag
         id: versioning
@@ -335,18 +335,12 @@ jobs:
           retention-days: 14
 
       - name: SonarQube — static analysis
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          export SONAR_SCANNER_VERSION=8.0.1.6346
-          export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-${SONAR_SCANNER_VERSION}-linux-x64
-          curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip \
-            https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux-x64.zip
-          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
-          export PATH=$SONAR_SCANNER_HOME/bin:$PATH
-
-          sonar-scanner \
+        with:
+          args: >
             -Dsonar.projectKey=node-monolith-3tier \
             -Dsonar.projectName=node-monolith-3tier \
             -Dsonar.projectVersion=$IMAGE_TAG \
