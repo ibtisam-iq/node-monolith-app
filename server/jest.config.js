@@ -2,7 +2,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/__tests__'],
   coverageReporters: ['text', 'lcov', 'cobertura'],
-  coverageDirectory: '../coverage',
+  coverageDirectory: '../coverage', // Output coverage reports to the root-level 'coverage' directory
   collectCoverageFrom: [
     '**/*.js',
     '!node_modules/**',
@@ -15,7 +15,7 @@ module.exports = {
     [
       'jest-junit',
       {
-        outputDirectory: '..',
+        outputDirectory: '..',  // Output jest-results.xml to the root directory for Jenkins to archive
         outputName: 'jest-results.xml',
         classNameTemplate: '{classname}',
         titleTemplate: '{title}'
